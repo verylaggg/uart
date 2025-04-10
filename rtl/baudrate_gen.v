@@ -20,8 +20,8 @@ module baudrate_gen (
     input  clk,
     input  rstn,
     input  rx_br_en,
-    output rx_br_stb,
-    output tx_br_stb
+    output reg rx_br_stb,
+    output reg tx_br_stb
 );
 // 1200, 2400, 4800, 9600, 19200, 38400, 57600, 115200 bps
 //   /8   /4    /2    *1    *2     *4     *6     *12
@@ -32,7 +32,6 @@ module baudrate_gen (
 
 // TX Baudrate Calculation
     reg [10:0]  tx_br_cnt, tx_br_cnt_n;
-    reg tx_br_stb;
 
     always @ (*) begin
         tx_br_cnt_n = tx_br_cnt + 1;
@@ -53,7 +52,6 @@ module baudrate_gen (
 
 // RX Baudrate Calculation
     reg [10:0]   rx_br_cnt,  rx_br_cnt_n;
-    reg  rx_br_stb;
 
     always @ (*) begin
          rx_br_cnt_n =  rx_br_cnt + 1;

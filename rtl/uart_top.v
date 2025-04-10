@@ -15,6 +15,9 @@
 * Description : uart top module
 * 
 ******************************************************************************/
+/*
+TODO: parity option(parity_en)
+*/
 
 module uart_top (
     input  clk,
