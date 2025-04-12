@@ -16,7 +16,8 @@
 * 
 ******************************************************************************/
 /*
-TODO: parity option(parity_en)
+TODO: parity option (parity_en)
+TODO: more baudrate option (19200, 115200...)
 */
 
 module uart_top (
