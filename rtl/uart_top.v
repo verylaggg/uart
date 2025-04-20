@@ -13,14 +13,16 @@
 * Creat : 2025/04/02
 * 
 * Description : uart top module
+*    2-wire uart interface w/ txd, rxd
 * 
 ******************************************************************************/
 /*
-TODO: parity option (parity_en)
 TODO: more baudrate option (19200, 115200...)
 */
 
-module uart_top (
+module uart_top #(
+    parameter PARITY_EN = 'h0
+)(
     input  clk,
     input  rstn,
     output [7:0] rx_dfifo,
@@ -31,7 +33,9 @@ module uart_top (
     wire        br_stb;
     wire [7:0]  din = 8'h5a;
 
-    uart_tx uart_tx_x (
+    uart_tx # (
+        .PARITY_EN(PARITY_EN)
+    ) uart_tx_x (
         .clk    (clk        ),
         .rstn   (rstn       ),
         .br_stb (tx_br_stb  ),
@@ -39,7 +43,9 @@ module uart_top (
         .txd    (txd        )
     );
 
-    uart_rx uart_rx_x (
+    uart_rx # (
+        .PARITY_EN(PARITY_EN)
+    ) uart_rx_x (
         .clk    (clk        ),
         .rstn   (rstn       ),
         .br_en  (rx_br_en   ),

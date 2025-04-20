@@ -16,7 +16,9 @@
 * 
 ******************************************************************************/
 
-module uart_tx (
+module uart_tx # (
+    parameter PARITY_EN = 'h0
+)(
     input  clk,
     input  rstn,
     input  br_stb,
@@ -26,9 +28,10 @@ module uart_tx (
     localparam  IDLE    = 0,
                 START   = 1,
                 DATA    = 2,
-                STOP    = 3;
+                STOP    = 3,
+                PARITY  = 4;
 
-    reg [1:0]   tx_fsm, tx_fsm_n;
+    reg [2:0]   tx_fsm, tx_fsm_n;
     reg [7:0]   txd_cnt, txd_cnt_n;
     reg         txd_n;
 
@@ -49,12 +52,16 @@ module uart_tx (
         end
         DATA:begin
             txd_n = din[txd_cnt];
-            txd_cnt_n = (txd_end) ? 'h0 : txd_cnt + 'h1;
-            tx_fsm_n = (txd_end) ? STOP : DATA;
+            txd_cnt_n = txd_end ? 'h0 : txd_cnt + 'h1;
+            tx_fsm_n = txd_end ? (PARITY_EN ? PARITY : STOP) : DATA;
         end
         STOP:begin
             txd_n = 'h1;
             tx_fsm_n = IDLE;
+        end
+        PARITY:begin
+            txd_n = ^din; // even partiy
+            tx_fsm_n = STOP;
         end
         endcase
     end
