@@ -19,11 +19,14 @@
 module uart_tx # (
     parameter PARITY_EN = 'h0
 )(
-    input  clk,
-    input  rstn,
-    input  br_stb,
-    input  [7:0] din,
-    output reg txd
+    input           clk,
+    input           rstn,
+    input           tx_en,
+    input           tx_br_stb,
+    input  [7:0]    din,
+    output          tx_br_en,
+    output          tx_busy,
+    output reg      txd
 );
     localparam  IDLE    = 0,
                 START   = 1,
@@ -34,17 +37,20 @@ module uart_tx # (
     reg [2:0]   tx_fsm, tx_fsm_n;
     reg [7:0]   txd_cnt, txd_cnt_n;
     reg         txd_n;
+    reg         tx_br_en_n, tx_br_en;
 
     wire        txd_end = txd_cnt == 'h7;
+    wire        tx_busy = tx_fsm != IDLE;
 
     always @ (*) begin
         tx_fsm_n = tx_fsm;
         txd_cnt_n = txd_cnt;
-        
+
         case (tx_fsm)
         IDLE: begin
             txd_n = 'h1;
-            tx_fsm_n = START;
+            if (tx_br_en)
+                tx_fsm_n = START;
         end
         START: begin
             txd_n = 'h0;
@@ -67,13 +73,22 @@ module uart_tx # (
     end
 
     always @ (posedge clk or negedge rstn) begin
+        if (!rstn || tx_fsm == STOP && tx_br_stb)
+            tx_br_en <= 'h0;
+        else if (tx_en)
+            tx_br_en <= 'h1;
+        else
+            tx_br_en <= tx_br_en;
+    end
+
+    always @ (posedge clk or negedge rstn) begin
         if (!rstn) begin
             tx_fsm  <= IDLE;
             txd     <= 'h1;
             txd_cnt <= 'h0;
         end else begin
             txd     <= txd_n;
-            if (br_stb) begin
+            if (tx_br_stb) begin
                 tx_fsm <= tx_fsm_n;
                 txd_cnt <= txd_cnt_n;
             end

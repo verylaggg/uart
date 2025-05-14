@@ -16,48 +16,56 @@
 *    2-wire uart interface w/ txd, rxd
 * 
 ******************************************************************************/
-/*
-TODO: more baudrate option (19200, 115200...)
-*/
 
 module uart_top #(
-    parameter PARITY_EN = 'h0
+    parameter PARITY_EN = 'h0,
+    parameter BAUDRATE = 9600
 )(
-    input  clk,
-    input  rstn,
+    input        clk,
+    input        rstn,
+    input        tx_en,
     output [7:0] rx_dfifo,
     input  [7:0] tx_dfifo,
-    input  rxd,
-    output txd
+    output       rx_busy,
+    output       tx_busy,
+    output       rx_parity_err,
+    input        rxd,
+    output       txd
 );
-    wire        br_stb;
-    wire [7:0]  din = 8'h5a;
 
     uart_tx # (
-        .PARITY_EN(PARITY_EN)
+        .PARITY_EN      (PARITY_EN      )
     ) uart_tx_x (
-        .clk    (clk        ),
-        .rstn   (rstn       ),
-        .br_stb (tx_br_stb  ),
-        .din    (tx_dfifo   ),
-        .txd    (txd        )
+        .clk            (clk            ),
+        .rstn           (rstn           ),
+        .tx_en          (tx_en          ),
+        .tx_br_stb      (tx_br_stb      ),
+        .tx_br_en       (tx_br_en       ),
+        .din            (tx_dfifo       ),
+        .tx_busy        (tx_busy        ),
+        .txd            (txd            )
     );
 
     uart_rx # (
-        .PARITY_EN(PARITY_EN)
+        .PARITY_EN      (PARITY_EN      )
     ) uart_rx_x (
-        .clk    (clk        ),
-        .rstn   (rstn       ),
-        .br_en  (rx_br_en   ),
-        .br_stb (rx_br_stb  ),
-        .rxd    (rxd        ),
-        .dout   (rx_dfifo   )
+        .clk            (clk            ),
+        .rstn           (rstn           ),
+        .rx_br_en       (rx_br_en       ),
+        .rx_br_stb      (rx_br_stb      ),
+        .rxd            (rxd            ),
+        .rx_busy        (rx_busy        ),
+        .parity_err     (rx_parity_err  ),
+        .dout           (rx_dfifo       )
     );
 
-    baudrate_gen baudrate_gen_x (
+    baudrate_gen # (
+        .BAUDRATE   (BAUDRATE   )
+    ) baudrate_gen_x (
         .clk        (clk        ),
         .rstn       (rstn       ),
         .rx_br_en   (rx_br_en   ),
+        .tx_br_en   (tx_br_en   ),
         .rx_br_stb  (rx_br_stb  ),
         .tx_br_stb  (tx_br_stb  )
     );
